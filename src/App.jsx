@@ -19,83 +19,64 @@ const HUD_POOL = [
   { type: 'sym', content: 'Spotify' },
 ];
 
-// Floating HUD elements that drift AND cycle content
+// Helper: create a single HUD element spawning from the sides of the title
+const createHudElement = (index) => {
+  const side = Math.random() > 0.5 ? 1 : -1; // left (-1) or right (+1) side
+  const startX = side * (280 + Math.random() * 80); // spawn at edge of title width (~560px wide)
+  const startY = (Math.random() - 0.5) * 120; // random vertical offset within title height
+  const driftX = side * (150 + Math.random() * 350); // drift further outward in the same direction
+  const driftY = (Math.random() - 0.5) * 250; // some vertical drift too
+  const duration = 6 + Math.random() * 6;
+  const item = HUD_POOL[Math.floor(Math.random() * HUD_POOL.length)];
+  return {
+    id: `hud-${index}-${Date.now()}-${Math.random()}`,
+    ...item,
+    startX,
+    startY,
+    tx: startX + driftX,
+    ty: startY + driftY,
+    duration,
+    delay: Math.random() * duration,
+    depth: 0.15 + Math.random() * 0.35,
+  };
+};
+
+// Floating HUD elements: spawn at center near title, drift outward, fade out, respawn
 const FloatingHUD = () => {
-  const [elements, setElements] = useState([]);
+  const [elements, setElements] = useState(() =>
+    Array.from({ length: 10 }).map((_, i) => createHudElement(i))
+  );
 
-  useEffect(() => {
-    const initialElements = Array.from({ length: 8 }).map((_, i) => ({
-      id: `hud-${i}-${Date.now()}`,
-      ...HUD_POOL[Math.floor(Math.random() * HUD_POOL.length)],
-      top: 15 + Math.random() * 70,
-      left: 5 + Math.random() * 90,
-      depth: 0.2 + Math.random() * 0.4,
-      floatDuration: 12 + Math.random() * 8,
-      floatDelay: Math.random() * -20,
-      phase: 'visible', // 'visible' | 'fading-out' | 'fading-in'
-    }));
-    setElements(initialElements);
-
-    // Every 3s, pick one element to fade-out then replace
-    const interval = setInterval(() => {
-      setElements(prev => {
-        const newArr = [...prev];
-        // Find a visible element to cycle
-        const visibleIdxs = newArr.map((el, i) => el.phase === 'visible' ? i : -1).filter(i => i !== -1);
-        if (visibleIdxs.length === 0) return newArr;
-        const idx = visibleIdxs[Math.floor(Math.random() * visibleIdxs.length)];
-        newArr[idx] = { ...newArr[idx], phase: 'fading-out' };
-        return newArr;
-      });
-
-      // After fade-out completes (600ms), swap content and fade back in
-      setTimeout(() => {
-        setElements(prev => {
-          const newArr = [...prev];
-          const idx = newArr.findIndex(el => el.phase === 'fading-out');
-          if (idx === -1) return newArr;
-          newArr[idx] = {
-            ...newArr[idx],
-            id: `hud-${idx}-${Date.now()}`,
-            ...HUD_POOL[Math.floor(Math.random() * HUD_POOL.length)],
-            top: 15 + Math.random() * 70,
-            left: 5 + Math.random() * 90,
-            phase: 'fading-in',
-          };
-          return newArr;
-        });
-
-        // After fade-in completes, mark visible
-        setTimeout(() => {
-          setElements(prev => prev.map(el => el.phase === 'fading-in' ? { ...el, phase: 'visible' } : el));
-        }, 600);
-      }, 600);
-    }, 3500);
-
-    return () => clearInterval(interval);
+  // When an element's animation ends, replace it with a fresh one
+  const handleAnimEnd = useCallback((index) => {
+    setElements(prev => {
+      const next = [...prev];
+      next[index] = { ...createHudElement(index), delay: 0 }; // no delay on respawn
+      return next;
+    });
   }, []);
 
   return (
-    <>
-      {elements.map((el) => (
+    <div className="hud-emitter">
+      {elements.map((el, i) => (
         <div
           key={el.id}
-          className={`${el.type === 'box' ? 'hud-box' : 'math-symbol'} parallax-layer hud-float`}
+          className={`${el.type === 'box' ? 'hud-box' : 'math-symbol'} parallax-layer hud-emit`}
           style={{
-            top: `${el.top}%`,
-            left: `${el.left}%`,
+            '--hud-sx': `${el.startX}px`,
+            '--hud-sy': `${el.startY}px`,
+            '--hud-tx': `${el.tx}px`,
+            '--hud-ty': `${el.ty}px`,
+            '--hud-dur': `${el.duration}s`,
+            '--hud-delay': `${el.delay}s`,
             '--depth': el.depth,
-            '--float-dur': `${el.floatDuration}s`,
-            '--float-delay': `${el.floatDelay}s`,
-            opacity: el.phase === 'fading-out' ? 0 : el.phase === 'fading-in' ? 0.4 : undefined,
-            transform: el.phase === 'fading-out' ? 'scale(0.7) translateY(15px)' : undefined,
-            transition: 'opacity 0.6s ease, transform 0.6s ease',
           }}
+          onAnimationEnd={() => handleAnimEnd(i)}
         >
           {el.content}
         </div>
       ))}
-    </>
+    </div>
   );
 };
 
@@ -106,40 +87,42 @@ const ParticleField = ({ heroRef }) => {
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const rafRef = useRef(null);
 
-  // Generate stable particle data once
-  const particleData = useRef(
-    Array.from({ length: 40 }).map(() => ({
-      ox: 0, oy: 0, // offset from repulsion
+  // Stable particle initialization
+  const particleData = useRef(null);
+  if (!particleData.current) {
+    particleData.current = Array.from({ length: 40 }).map(() => ({
+      ox: 0, oy: 0,
       size: 2 + Math.random() * 4,
       tx: (Math.random() - 0.5) * 800,
       ty: (Math.random() - 0.5) * 400,
       delay: Math.random() * 6,
       duration: 4 + Math.random() * 4,
-    }))
-  ).current;
+    }));
+  }
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      mouseRef.current = {
-        x: e.clientX - rect.left - rect.width / 2,
-        y: e.clientY - rect.top - rect.height / 2,
-      };
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-
     // Animation loop for per-particle repulsion
     const animate = () => {
-      const mx = mouseRef.current.x;
-      const my = mouseRef.current.y;
+      if (!heroRef.current || !containerRef.current || !particleData.current) {
+        rafRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      // Read mouse position from Hero CSS variables (set in App.jsx listener)
+      const mxVal = parseFloat(heroRef.current.style.getPropertyValue('--mx')) || 0.5;
+      const myVal = parseFloat(heroRef.current.style.getPropertyValue('--my')) || 0.5;
+      
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const heroRect = heroRef.current.getBoundingClientRect();
+      
+      // Calculate mouse position relative to emitter center
+      const mx = (mxVal - 0.5) * heroRect.width;
+      const my = (myVal - 0.5) * heroRect.height;
 
       particlesRef.current.forEach((el, i) => {
         if (!el) return;
-        const data = particleData[i];
+        const data = particleData.current[i];
         const rect = el.getBoundingClientRect();
-        const containerRect = containerRef.current?.getBoundingClientRect();
-        if (!containerRect) return;
 
         // Particle position relative to center of emitter
         const px = rect.left + rect.width / 2 - containerRect.left - containerRect.width / 2;
@@ -148,20 +131,27 @@ const ParticleField = ({ heroRef }) => {
         const dx = px - mx;
         const dy = py - my;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const maxDist = 200; // repulsion radius in px
+        const maxDist = 250; // slightly larger repulsion radius
 
-        if (dist < maxDist && dist > 0) {
-          const force = (1 - dist / maxDist) * 60; // max 60px push
+        if (dist < maxDist && dist > 1) {
+          const force = (1 - dist / maxDist) * 80; // max 80px push
           const angle = Math.atan2(dy, dx);
-          data.ox += (Math.cos(angle) * force - data.ox) * 0.1;
-          data.oy += (Math.sin(angle) * force - data.oy) * 0.1;
+          const targetOx = Math.cos(angle) * force;
+          const targetOy = Math.sin(angle) * force;
+          
+          data.ox += (targetOx - data.ox) * 0.15;
+          data.oy += (targetOy - data.oy) * 0.15;
         } else {
-          // Spring back
-          data.ox *= 0.92;
-          data.oy *= 0.92;
+          // Spring back to origin
+          data.ox *= 0.9;
+          data.oy *= 0.9;
         }
 
-        el.style.translate = `${data.ox}px ${data.oy}px`;
+        // Apply using individual translate CSS variables (avoids transform conflicts)
+        if (!isNaN(data.ox) && !isNaN(data.oy)) {
+          el.style.setProperty('--rx', `${data.ox}px`);
+          el.style.setProperty('--ry', `${data.oy}px`);
+        }
       });
 
       rafRef.current = requestAnimationFrame(animate);
@@ -169,14 +159,13 @@ const ParticleField = ({ heroRef }) => {
     rafRef.current = requestAnimationFrame(animate);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [heroRef]);
 
   return (
     <div ref={containerRef} className="particle-emitter-center">
-      {particleData.map((p, i) => (
+      {particleData.current.map((p, i) => (
         <div
           key={i}
           ref={el => particlesRef.current[i] = el}
@@ -195,12 +184,53 @@ const ParticleField = ({ heroRef }) => {
   );
 };
 
+// Interactive 3D Tilt Card component
+const TiltCard = ({ children, className = "", style = {} }) => {
+  const cardRef = useRef(null);
+  const [rotate, setRotate] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    // Guard against division by zero/NaN
+    const rotateX = centerY > 0 ? ((y - centerY) / centerY) * -10 : 0;
+    const rotateY = centerX > 0 ? ((x - centerX) / centerX) * 10 : 0;
+    setRotate({ x: rotateX, y: rotateY });
+  };
+
+  const handleMouseLeave = () => {
+    setRotate({ x: 0, y: 0 });
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      className={`glass-card card-tilt-wrapper ${className}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        ...style,
+        transform: `rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`,
+      }}
+    >
+      <div className="card-content-inner">
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [activeFaq, setActiveFaq] = useState(null);
   const heroRef = useRef(null);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
+      // Hero parallax mouse tracking
       if (!heroRef.current) return;
       const { left, top, width, height } = heroRef.current.getBoundingClientRect();
       const x = (e.clientX - left) / width;
@@ -217,7 +247,7 @@ const App = () => {
       });
     }, { threshold: 0.1 });
 
-    const revealElements = document.querySelectorAll('.reveal');
+    const revealElements = Array.from(document.querySelectorAll('.reveal'));
     revealElements.forEach(el => observer.observe(el));
 
     return () => {
@@ -231,7 +261,7 @@ const App = () => {
   return (
     <div className="app-wrapper">
       {/* Navigation */}
-      <nav className="navbar reveal">
+      <nav className="navbar">
         <div className="container">
           <div className="logo-area">Merky</div>
           <div className="nav-pill-container">
@@ -272,14 +302,14 @@ const App = () => {
         </div>
 
         <div className="hero-content-fx">
-          <div className="meta-badge-text reveal" style={{ '--delay': '0.1s' }}>
+          <div className="meta-badge-text">
             Meet <span>Merky</span>
           </div>
-          <h1 className="fx-title reveal" style={{ '--delay': '0.3s' }}>
+          <h1 className="fx-title">
             Your animated AI friend<br />
             that can operate your computer
           </h1>
-          <div className="feature-row-fx reveal" style={{ '--delay': '0.5s' }}>
+          <div className="feature-row-fx">
             <div className="feature-tag-fx">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
               Talk naturally
@@ -297,7 +327,7 @@ const App = () => {
               Watch it happen
             </div>
           </div>
-          <div className="fx-btn-container reveal" style={{ '--delay': '0.7s' }}>
+          <div className="fx-btn-container">
             <button className="fx-btn-primary">
               Get Early Access <span className="arrow-circle">→</span>
             </button>
@@ -305,7 +335,7 @@ const App = () => {
           </div>
         </div>
 
-        <div className="hero-footer-hints reveal" style={{ '--delay': '1s' }}>
+        <div className="hero-footer-hints">
           <div className="social-links-fx">
             <span style={{ marginRight: '1rem', opacity: 0.6, fontSize: '0.9rem' }}>JOIN THE COMMUNITY</span>
             <a href="#" className="social-icon-wrapper">
@@ -327,79 +357,169 @@ const App = () => {
         </div>
       </section>
 
-      {/* Feature Section (PRESERVED) */}
-      <section id="features" className="reveal container" style={{ padding: '120px 2rem' }}>
-        <h2 className="section-title">Designed for <span className="gradient-text">Freedom</span></h2>
-        <div className="problem-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem' }}>
-          <div className="glass-card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon-large"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+       {/* Feature Section — Bento Grid */}
+      <section id="features" className="reveal container features-section-modern" style={{ padding: '160px 2rem' }}>
+        <div className="data-dots-bg"></div>
+        <div className="feature-halo" style={{ top: '15%', left: '5%' }}></div>
+        <div className="feature-halo" style={{ bottom: '10%', right: '0%', opacity: 0.06 }}></div>
+        
+        <h2 className="section-title reveal" style={{ position: 'relative', zIndex: 1 }}>
+          Designed for <span className="gradient-text" style={{ fontSize: '1.2em' }}>Freedom</span>
+        </h2>
+        <p className="reveal" style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '1.15rem', maxWidth: '600px', margin: '-2rem auto 4rem', position: 'relative', zIndex: 1 }}>
+          Three modes. One AI. Unlimited control over your digital life.
+        </p>
+        
+        <div className="bento-grid reveal" style={{ '--delay': '0.3s' }}>
+          {/* Large left card — Friend Mode */}
+          <TiltCard className="bento-card bento-card-lg">
+            <div className="bento-card-glow bento-glow-1"></div>
+            <div className="bento-header">
+              <div className="bento-badge">
+                <span className="bento-pulse"></span>
+                ACTIVE
+              </div>
+              <span className="bento-label">01</span>
             </div>
-            <h3>Friend Mode</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Talk naturally, react, and keep you company throughout the day.</p>
-          </div>
-          <div className="glass-card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon-large"><rect width="16" height="10" x="4" y="11" rx="2"/><path d="M12 11V7"/><path d="M12 7V3"/><path d="M9 3h6"/><circle cx="10" cy="15" r="1"/><circle cx="14" cy="15" r="1"/><circle cx="12" cy="17" r="1"/></svg>
+            <div className="bento-icon-area">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
-            <h3>Operator Mode</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Follow complex instructions and use your desktop interface.</p>
-          </div>
-          <div className="glass-card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon-large"><path d="m12 14 4-4"/><path d="m3.34 7 1.66-3 9 3 8.33-4 1.67 3"/><path d="M5 21V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><path d="M10 13a2 2 0 0 0 4 0"/><path d="M12 2v3"/></svg>
+            <h3 className="bento-title">Friend Mode</h3>
+            <p className="bento-desc">Talk naturally, react, and keep you company throughout the day. Your desktop, now with a soul.</p>
+            <div className="bento-terminal">
+              <div className="bento-term-bar"><span></span><span></span><span></span></div>
+              <div className="bento-term-body">
+                <span className="term-prompt">merky&gt;</span> Hey, what's on my calendar?<br/>
+                <span className="term-response">You have 2 meetings today...</span>
+              </div>
             </div>
-            <h3>Safe & Secure</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Permission gated control with visible actions at all times.</p>
+          </TiltCard>
+
+          {/* Right column — stacked */}
+          <div className="bento-col-right">
+            {/* Operator Mode */}
+            <TiltCard className="bento-card bento-card-sm">
+              <div className="bento-card-glow bento-glow-2"></div>
+              <div className="bento-header">
+                <div className="bento-badge bento-badge-blue">
+                  <span className="bento-pulse bento-pulse-blue"></span>
+                  PRECISION
+                </div>
+                <span className="bento-label">02</span>
+              </div>
+              <div className="bento-row">
+                <div className="bento-icon-area-sm">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="10" x="4" y="11" rx="2"/><path d="M12 11V7"/><path d="M12 7V3"/><path d="M9 3h6"/><circle cx="10" cy="15" r="1"/><circle cx="14" cy="15" r="1"/><circle cx="12" cy="17" r="1"/></svg>
+                </div>
+                <div>
+                  <h3 className="bento-title" style={{ fontSize: '1.4rem' }}>Operator Mode</h3>
+                  <p className="bento-desc" style={{ fontSize: '0.95rem' }}>Follow complex instructions and use your desktop interface with surgical precision.</p>
+                </div>
+              </div>
+              <div className="bento-actions-row">
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Click</div>
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Type</div>
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Scroll</div>
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Launch</div>
+              </div>
+            </TiltCard>
+
+            {/* Safe & Secure */}
+            <TiltCard className="bento-card bento-card-sm">
+              <div className="bento-card-glow bento-glow-3"></div>
+              <div className="bento-header">
+                <div className="bento-badge bento-badge-purple">
+                  <span className="bento-pulse bento-pulse-purple"></span>
+                  PROTECTED
+                </div>
+                <span className="bento-label">03</span>
+              </div>
+              <div className="bento-row">
+                <div className="bento-icon-area-sm">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <div>
+                  <h3 className="bento-title" style={{ fontSize: '1.4rem' }}>Safe &amp; Secure</h3>
+                  <p className="bento-desc" style={{ fontSize: '0.95rem' }}>Permission gated control with visible actions. Privacy built-in, not bolted on.</p>
+                </div>
+              </div>
+              <div className="bento-perm-bar">
+                <div className="bento-perm-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span>Screen Access</span>
+                  <span className="perm-granted">Granted</span>
+                </div>
+                <div className="bento-perm-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span>File System</span>
+                  <span className="perm-ask">Ask Each Time</span>
+                </div>
+              </div>
+            </TiltCard>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="reveal container" style={{ padding: '120px 2rem', position: 'relative' }}>
-        <div className="bg-accent-lines" style={{ opacity: 0.3 }}></div>
+      <section id="how-it-works" className="reveal container" style={{ padding: '160px 2rem', position: 'relative' }}>
+        <div className="data-dots-bg" style={{ opacity: 0.2 }}></div>
         <div style={{ position: 'relative', zIndex: 2 }}>
           <h2 className="section-title">How It <span className="gradient-text">Works</span></h2>
-          <div className="how-it-works-grid">
-            <div className="glass-card step-card">
+          <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2.5rem' }}>
+            <TiltCard className="step-card" style={{ padding: '3.5rem 2rem' }}>
               <div className="step-number">1</div>
-              <h3>Tell Merky</h3>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>Just say what you want in natural language. No complex syntax required.</p>
-            </div>
-            <div className="glass-card step-card">
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Tell Merky</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>Just say what you want in natural language. No complex syntax required.</p>
+            </TiltCard>
+            <TiltCard className="step-card" style={{ padding: '3.5rem 2rem' }}>
               <div className="step-number">2</div>
-              <h3>Safe Planning</h3>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>Merky plans the safest steps to execute, asking for permission if needed.</p>
-            </div>
-            <div className="glass-card step-card">
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Safe Planning</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>Merky plans the safest steps to execute, asking for permission if needed.</p>
+            </TiltCard>
+            <TiltCard className="step-card" style={{ padding: '3.5rem 2rem' }}>
               <div className="step-number">3</div>
-              <h3>Watch it happen</h3>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>Watch Merky execute the task on your screen, exactly like a human would.</p>
-            </div>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Watch it happen</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>Watch Merky execute the task on your screen, exactly like a human would.</p>
+            </TiltCard>
           </div>
         </div>
       </section>
 
       {/* Use Cases */}
-      <section className="reveal container" style={{ padding: '120px 2rem' }}>
+      <section className="reveal container" style={{ padding: '160px 2rem', position: 'relative' }}>
         <h2 className="section-title">Endless <span className="gradient-text">Possibilities</span></h2>
-        <div className="use-case-grid">
-          <div className="glass-card use-case-card">
-            <div className="use-case-tag">WORKSPACE</div>
-            <div className="use-case-cmd">"Merky, open my VS Code workspace, start Spotify focus playlist, and turn on Do Not Disturb."</div>
-          </div>
-          <div className="glass-card use-case-card">
-            <div className="use-case-tag">RESEARCH</div>
-            <div className="use-case-cmd">"Search for the best mechanical keyboards under $200 and create a summary in my Notion."</div>
-          </div>
-          <div className="glass-card use-case-card">
-            <div className="use-case-tag">AUTOMATION</div>
-            <div className="use-case-cmd">"Check my email for today's meeting invites and add them to my Google Calendar."</div>
-          </div>
-          <div className="glass-card use-case-card">
-            <div className="use-case-tag">SOCIAL</div>
-            <div className="use-case-cmd">"Open Twitter and draft a post sharing the results of my latest deep work session."</div>
-          </div>
+        <div className="use-case-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
+          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>WORKSPACE</div>
+              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+            </div>
+            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Merky, open my VS Code workspace, start Spotify focus playlist, and turn on Do Not Disturb."</div>
+          </TiltCard>
+          
+          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>RESEARCH</div>
+              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+            </div>
+            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Search for the best mechanical keyboards under $200 and create a summary in my Notion."</div>
+          </TiltCard>
+          
+          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>AUTOMATION</div>
+              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+            </div>
+            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Check my email for today's meeting invites and add them to my Google Calendar."</div>
+          </TiltCard>
+          
+          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>SOCIAL</div>
+              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+            </div>
+            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Open Twitter and draft a post sharing the results of my latest deep work session."</div>
+          </TiltCard>
         </div>
       </section>
 
@@ -437,32 +557,43 @@ const App = () => {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="reveal container" style={{ padding: '120px 2rem', position: 'relative' }}>
-        <div className="bg-accent-lines" style={{ opacity: 0.3 }}></div>
+      <section id="pricing" className="reveal container" style={{ padding: '160px 2rem', position: 'relative' }}>
+        <div className="feature-halo" style={{ top: '50%', right: '10%' }}></div>
         <div style={{ position: 'relative', zIndex: 2 }}>
           <h2 className="section-title">Simple <span className="gradient-text">Pricing</span></h2>
-          <div className="pricing-grid">
-            <div className="glass-card pricing-card">
-              <div><h3>Free</h3><p className="price">$0</p></div>
-              <ul className="pricing-features">
-                <li>Friend Mode</li><li>5 Operator tasks / day</li><li>Standard Speed</li>
+          <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem' }}>
+            <TiltCard className="pricing-card" style={{ padding: '3rem 2rem' }}>
+              <div><h3 style={{ fontSize: '1.6rem' }}>Free</h3><p className="price">$0</p></div>
+              <ul className="pricing-features" style={{ margin: '2rem 0', listStyle: 'none', padding: 0 }}>
+                <li style={{ marginBottom: '0.8rem', color: 'var(--text-secondary)' }}>✓ Friend Mode</li>
+                <li style={{ marginBottom: '0.8rem', color: 'var(--text-secondary)' }}>✓ 5 Operator tasks / day</li>
+                <li style={{ marginBottom: '0.8rem', color: 'var(--text-secondary)' }}>✓ Standard Speed</li>
               </ul>
-              <button className="fx-btn-secondary">Current Plan</button>
-            </div>
-            <div className="glass-card pricing-card featured">
-              <div><h3>Pro</h3><p className="price">$19<span>/mo</span></p></div>
-              <ul className="pricing-features">
-                <li>Unlimited Tasks</li><li>Voice Control</li><li>Priority Access</li><li>Early beta features</li>
+              <button className="fx-btn-secondary" style={{ width: '100%' }}>Current Plan</button>
+            </TiltCard>
+            
+            <TiltCard className="pricing-card featured" style={{ padding: '3.5rem 2rem', border: '1px solid var(--accent-neon)' }}>
+              <div className="popular-badge" style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'var(--accent-neon)', color: 'black', padding: '0.2rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>MOST POPULAR</div>
+              <div><h3 style={{ fontSize: '1.6rem' }}>Pro</h3><p className="price" style={{ color: 'var(--accent-neon)' }}>$19<span style={{ fontSize: '1rem' }}>/mo</span></p></div>
+              <ul className="pricing-features" style={{ margin: '2rem 0', listStyle: 'none', padding: 0 }}>
+                <li style={{ marginBottom: '0.8rem' }}>✓ Unlimited Tasks</li>
+                <li style={{ marginBottom: '0.8rem' }}>✓ Voice Control</li>
+                <li style={{ marginBottom: '0.8rem' }}>✓ Priority Access</li>
+                <li style={{ marginBottom: '0.8rem' }}>✓ Early beta features</li>
               </ul>
-              <button className="fx-btn-primary">Join Early Access</button>
-            </div>
-            <div className="glass-card pricing-card">
-              <div><h3>Teams</h3><p className="price">$49<span>/mo</span></p></div>
-              <ul className="pricing-features">
-                <li>Shared Workflows</li><li>Admin Controls</li><li>SSO & Security</li><li>Custom Integrations</li>
+              <button className="fx-btn-primary" style={{ width: '100%' }}>Join Early Access</button>
+            </TiltCard>
+            
+            <TiltCard className="pricing-card" style={{ padding: '3rem 2rem' }}>
+              <div><h3 style={{ fontSize: '1.6rem' }}>Teams</h3><p className="price">$49<span style={{ fontSize: '1rem' }}>/mo</span></p></div>
+              <ul className="pricing-features" style={{ margin: '2rem 0', listStyle: 'none', padding: 0 }}>
+                <li style={{ marginBottom: '0.8rem', color: 'var(--text-secondary)' }}>✓ Shared Workflows</li>
+                <li style={{ marginBottom: '0.8rem', color: 'var(--text-secondary)' }}>✓ Admin Controls</li>
+                <li style={{ marginBottom: '0.8rem', color: 'var(--text-secondary)' }}>✓ SSO & Security</li>
+                <li style={{ marginBottom: '0.8rem', color: 'var(--text-secondary)' }}>✓ Custom Integrations</li>
               </ul>
-              <button className="fx-btn-secondary">Contact Sales</button>
-            </div>
+              <button className="fx-btn-secondary" style={{ width: '100%' }}>Contact Sales</button>
+            </TiltCard>
           </div>
         </div>
       </section>
@@ -488,17 +619,18 @@ const App = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="reveal container" style={{ padding: '120px 2rem' }}>
-        <div className="final-cta-box">
-          <h2 className="fx-title">Ready to meet your AI friend?</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', marginBottom: '3rem', maxWidth: '600px', marginInline: 'auto' }}>
-            Join the waitlist today for early access to the future of computing.
+      <section className="reveal container" style={{ padding: '160px 2rem', position: 'relative' }}>
+        <div className="feature-halo" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '800px', height: '800px', opacity: 0.1 }}></div>
+        <TiltCard className="final-cta-box" style={{ padding: '6rem 4rem', textAlign: 'center', border: '1px solid rgba(127, 255, 180, 0.2)' }}>
+          <h2 className="fx-title" style={{ fontSize: '3.5rem', marginBottom: '1.5rem' }}>Ready to meet your AI friend?</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.3rem', marginBottom: '3.5rem', maxWidth: '650px', marginInline: 'auto', lineHeight: '1.6' }}>
+            Join the waitlist today for early access to the future of computing. Experience Merky before anyone else.
           </p>
-          <div className="fx-btn-container">
-            <button className="fx-btn-primary">Join the Waitlist <span className="arrow-circle">→</span></button>
-            <button className="fx-btn-secondary">Watch Demo</button>
+          <div className="fx-btn-container" style={{ justifyContent: 'center' }}>
+            <button className="fx-btn-primary" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem' }}>Join the Waitlist <span className="arrow-circle">→</span></button>
+            <button className="fx-btn-secondary" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem' }}>Watch Demo</button>
           </div>
-        </div>
+        </TiltCard>
       </section>
 
       {/* Footer */}
