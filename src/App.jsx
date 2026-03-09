@@ -224,6 +224,352 @@ const TiltCard = ({ children, className = "", style = {} }) => {
   );
 };
 
+// Animated Demo Interaction Component
+const AnimatedDemo = () => {
+  const [step, setStep] = useState(0);
+  const [typing, setTyping] = useState("");
+  const timerRef = useRef(null);
+
+  const fullText = "Merky, play my focus playlist on Spotify, then search 'best productivity system', open the top 3 results, and summarize.";
+
+  useEffect(() => {
+    // Sequence Logic
+    const runSequence = async () => {
+      // Step 0: User input typing
+      setStep(0);
+      setTyping("");
+      for (let i = 0; i <= fullText.length; i++) {
+        await new Promise(r => setTimeout(r, 20)); // faster typing
+        setTyping(fullText.slice(0, i));
+      }
+      
+      await new Promise(r => setTimeout(r, 1000));
+      setStep(1); // Spotify action
+      
+      await new Promise(r => setTimeout(r, 2500));
+      setStep(2); // Browser action
+      
+      await new Promise(r => setTimeout(r, 2500));
+      setStep(3); // Summary
+      
+      await new Promise(r => setTimeout(r, 6000)); // Pause at end
+      runSequence(); // Loop
+    };
+
+    runSequence();
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
+  return (
+    <div className="demo-canvas">
+      {/* Desktop Background Mockup */}
+      <div className="desktop-env">
+        <div className="wallpaper-glow"></div>
+        <div className="taskbar-mock">
+          <div className="start-btn">M</div>
+          <div className="task-icons">
+            <div className={`task-icon s-icon ${step >= 1 ? 'active' : ''}`}></div>
+            <div className={`task-icon b-icon ${step >= 2 ? 'active' : ''}`}></div>
+            <div className={`task-icon v-icon`}></div>
+          </div>
+        </div>
+
+        {/* Chat / Command Window */}
+        <div className="demo-chat-window">
+          <div className="chat-header">
+            <div className="chat-dot"></div>
+            <span>Merky AI — Operating Your Computer</span>
+          </div>
+          <div className="chat-content">
+            <div className="chat-bubble user">
+              {typing}
+              <span className="cursor-blink">|</span>
+            </div>
+            
+            {step >= 1 && (
+              <div className="chat-bubble assistant reveal-up">
+                <span className="check-icon">✅</span> Playing Focus Playlist on Spotify
+              </div>
+            )}
+            
+            {step >= 2 && (
+              <div className="chat-bubble assistant reveal-up" style={{ animationDelay: '0.2s' }}>
+                <span className="check-icon">✅</span> Searching "best productivity system"... Opening top 3 links
+              </div>
+            )}
+            
+            {step >= 3 && (
+              <div className="chat-bubble assistant reveal-up" style={{ animationDelay: '0.4s' }}>
+                <span className="check-icon">✅</span> Analysis complete. I've summarized the key points from Notion, Trello, and Obsidian. Want the 1-minute version or deep dive?
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* App Overlays */}
+        {step === 1 && (
+          <div className="app-overlay spotify-overlay reveal-scale">
+            <div className="app-top-bar">Spotify — Focus Flow</div>
+            <div className="spotify-inner">
+              <div className="album-art-wrap">
+                <div className="album-art"></div>
+              </div>
+              <div className="track-info">
+                <div className="track-name">Deep Focus Beats</div>
+                <div className="artist-name">Merky Curator</div>
+              </div>
+              <div className="play-controls">
+                <span>⏮</span> <span className="play-circle">⏸</span> <span>⏭</span>
+              </div>
+              <div className="progress-bar"><div className="progress-fill"></div></div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="app-overlay browser-overlay reveal-scale">
+            <div className="app-top-bar">Browser — Search Results</div>
+            <div className="browser-inner">
+              <div className="search-box-mock">best productivity system</div>
+              <div className="search-results-mock">
+                <div className="result-card">
+                  <div className="result-title">1. The Eisenhower Matrix - A Deep...</div>
+                  <div className="result-url">productivity.com/eisenhower</div>
+                </div>
+                <div className="result-card">
+                  <div className="result-title">2. GTD Method: 5 Steps to Mastery...</div>
+                  <div className="result-url">systems.io/gtd-guide</div>
+                </div>
+                <div className="result-card">
+                  <div className="result-title">3. Why Time Blocking is King...</div>
+                  <div className="result-url">focus.blog/time-blocking</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const MagneticButton = ({ children, className, style }) => {
+  const btnRef = useRef(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    const { clientX, clientY } = e;
+    const { left, top, width, height } = btnRef.current.getBoundingClientRect();
+    const x = clientX - (left + width / 2);
+    const y = clientY - (top + height / 2);
+    
+    // Magnetic pull: move button towards cursor (max 15px)
+    setPosition({ x: x * 0.15, y: y * 0.15 });
+  };
+
+  const handleMouseLeave = () => {
+    setPosition({ x: 0, y: 0 });
+  };
+
+  return (
+    <button
+      ref={btnRef}
+      className={className}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        ...style,
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        transition: position.x === 0 ? 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
+const StarParticles = () => {
+  const [stars, setStars] = useState([]);
+  useEffect(() => {
+    const s = Array.from({ length: 40 }).map(() => ({
+      id: Math.random(),
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2 + 1,
+      duration: 10 + Math.random() * 20,
+      delay: Math.random() * 10
+    }));
+    setStars(s);
+  }, []);
+
+  return (
+    <div className="star-drift-bg">
+      {stars.map(s => (
+        <div 
+          key={s.id}
+          className="star-drift-particle"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            animationDuration: `${s.duration}s`,
+            animationDelay: `${s.delay}s`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const OrbitalCore = () => {
+  return (
+    <div className="orbital-core-wrap">
+      <div className="orbital-ring ring-1"></div>
+      <div className="orbital-ring ring-2"></div>
+      <div className="orbital-ring ring-3"></div>
+      <div className="core-glow-center"></div>
+    </div>
+  );
+};
+
+const InteractiveCTA = () => {
+  const containerRef = useRef(null);
+  const [nodes, setNodes] = useState([]);
+
+  useEffect(() => {
+    // Initialize 15 random nodes
+    const initialNodes = Array.from({ length: 15 }).map(() => ({
+      id: Math.random(),
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      tx: 0,
+      ty: 0
+    }));
+    setNodes(initialNodes);
+
+    const handleMouseMove = (e) => {
+      if (!containerRef.current) return;
+      const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+      const mx = ((e.clientX - left) / width) * 100;
+      const my = ((e.clientY - top) / height) * 100;
+
+      setNodes(prev => prev.map(node => {
+        // Calculate offset from mouse
+        const dx = mx - node.x;
+        const dy = my - node.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        // Push nodes away from mouse if close
+        if (dist < 20) {
+          const force = (20 - dist) * 0.5;
+          return { ...node, tx: -dx * (force / dist), ty: -dy * (force / dist) };
+        }
+        return { ...node, tx: 0, ty: 0 };
+      }));
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  return (
+    <section ref={containerRef} className="reveal container interactive-cta-section">
+      <div className="cta-hex-grid"></div>
+      <StarParticles />
+      <div className="cta-neural-bg">
+        {nodes.map(node => (
+          <div 
+            key={node.id}
+            className="neural-node"
+            style={{
+              left: `${node.x}%`,
+              top: `${node.y}%`,
+              width: `${node.size}px`,
+              height: `${node.size}px`,
+              transform: `translate(${node.tx}px, ${node.ty}px)`,
+              transition: 'transform 0.4s ease-out'
+            }}
+          />
+        ))}
+      </div>
+      
+      <div className="cta-glow-pulse"></div>
+      <OrbitalCore />
+      
+      <TiltCard className="final-cta-box-modern">
+        <div className="cyber-border-wrap"></div>
+        <h2 className="wow-title">
+          Ready to meet your <br/>
+          <span className="cyber-glow">AI FRIEND?</span>
+          <span className="cyber-glow-reflect">AI FRIEND?</span>
+        </h2>
+        <p className="cta-subtext">
+          Join the waitlist today for early access to the future of computing. 
+          Experience Merky before anyone else.
+        </p>
+        <div className="cta-actions">
+          <MagneticButton className="fx-btn-primary mega-cta">
+            Join the Waitlist <span className="arrow-circle">→</span>
+          </MagneticButton>
+          <MagneticButton className="fx-btn-secondary mega-cta-secondary">
+            Watch Demo
+          </MagneticButton>
+        </div>
+      </TiltCard>
+    </section>
+  );
+};
+
+const ComparisonHologram = () => {
+  const features = [
+    { name: "Conversation", llm: "Limited context", rpa: "No", merky: "Natural Friend" },
+    { name: "GUI Execution", llm: "No", rpa: "Fragile / Static", merky: "Dynamic Vision" },
+    { name: "Learning Curve", llm: "Low (Chat only)", rpa: "High (Dev only)", merky: "ZERO (Just Talk)" },
+    { name: "Speed", llm: "Instant Chat", rpa: "Batch Only", merky: "Real-time Action" }
+  ];
+
+  return (
+    <div className="hologram-grid">
+      <div className="hologram-pane-labels">
+        <div className="feature-stub"></div>
+        {features.map((f, i) => (
+          <div key={i} className="feature-label-cell">{f.name}</div>
+        ))}
+      </div>
+
+      <div className="hologram-pane standard-llm">
+        <div className="pane-header">Standard LLMs</div>
+        {features.map((f, i) => (
+          <div key={i} className="pane-cell">{f.llm}</div>
+        ))}
+      </div>
+
+      <div className="hologram-pane tradition-rpa">
+        <div className="pane-header">Traditional RPA</div>
+        {features.map((f, i) => (
+          <div key={i} className="pane-cell">{f.rpa}</div>
+        ))}
+      </div>
+
+      <TiltCard className="hologram-pane merky-pane-victor">
+        <div className="merky-badge-mini">PREMIUM AI</div>
+        <div className="pane-header-merky">
+          Merky AI
+        </div>
+        <div className="victory-glow"></div>
+        {features.map((f, i) => (
+          <div key={i} className="pane-cell-merky">
+            <span className="advantage-pulse"></span>
+            {f.merky}
+          </div>
+        ))}
+      </TiltCard>
+    </div>
+  );
+};
+
 const App = () => {
   const [activeFaq, setActiveFaq] = useState(null);
   const heroRef = useRef(null);
@@ -465,21 +811,48 @@ const App = () => {
         <div className="data-dots-bg" style={{ opacity: 0.2 }}></div>
         <div style={{ position: 'relative', zIndex: 2 }}>
           <h2 className="section-title">How It <span className="gradient-text">Works</span></h2>
-          <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2.5rem' }}>
-            <TiltCard className="step-card" style={{ padding: '3.5rem 2rem' }}>
-              <div className="step-number">1</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Tell Merky</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>Just say what you want in natural language. No complex syntax required.</p>
+          <div className="how-it-works-grid">
+            <TiltCard className="step-card">
+              <div className="step-header">
+                <div className="step-icon-box">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                </div>
+                <div className="step-number-tag">01</div>
+              </div>
+              <h3 className="step-title">Tell Merky</h3>
+              <p className="step-description">Just say what you want in natural language. No complex syntax required. Merky listens and understands your intent.</p>
             </TiltCard>
-            <TiltCard className="step-card" style={{ padding: '3.5rem 2rem' }}>
-              <div className="step-number">2</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Safe Planning</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>Merky plans the safest steps to execute, asking for permission if needed.</p>
+
+            <div className="step-connector">
+              <div className="connector-line"></div>
+              <div className="connector-dot"></div>
+            </div>
+
+            <TiltCard className="step-card">
+              <div className="step-header">
+                <div className="step-icon-box" style={{ background: 'rgba(96, 165, 250, 0.1)', borderColor: 'rgba(96, 165, 250, 0.2)' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <div className="step-number-tag" style={{ color: '#60a5fa' }}>02</div>
+              </div>
+              <h3 className="step-title">Safe Planning</h3>
+              <p className="step-description">Merky plans the safest steps to execute, asking for permission if needed. Privacy and security are baked in.</p>
             </TiltCard>
-            <TiltCard className="step-card" style={{ padding: '3.5rem 2rem' }}>
-              <div className="step-number">3</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Watch it happen</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.6' }}>Watch Merky execute the task on your screen, exactly like a human would.</p>
+
+            <div className="step-connector">
+              <div className="connector-line"></div>
+              <div className="connector-dot"></div>
+            </div>
+
+            <TiltCard className="step-card">
+              <div className="step-header">
+                <div className="step-icon-box" style={{ background: 'rgba(192, 132, 252, 0.1)', borderColor: 'rgba(192, 132, 252, 0.2)' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </div>
+                <div className="step-number-tag" style={{ color: '#c084fc' }}>03</div>
+              </div>
+              <h3 className="step-title">Watch it happen</h3>
+              <p className="step-description">Watch Merky execute the task on your screen, exactly like a human would. Real-time feedback and control.</p>
             </TiltCard>
           </div>
         </div>
@@ -488,37 +861,89 @@ const App = () => {
       {/* Use Cases */}
       <section className="reveal container" style={{ padding: '160px 2rem', position: 'relative' }}>
         <h2 className="section-title">Endless <span className="gradient-text">Possibilities</span></h2>
-        <div className="use-case-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
-          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
-              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>WORKSPACE</div>
-              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+        <div className="use-case-grid">
+          <TiltCard className="use-case-card terminal-window">
+            <div className="terminal-header">
+              <div className="terminal-controls">
+                <span className="dot dot-red"></span>
+                <span className="dot dot-yellow"></span>
+                <span className="dot dot-green"></span>
+              </div>
+              <div className="use-case-category">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                WORKSPACE
+              </div>
             </div>
-            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Merky, open my VS Code workspace, start Spotify focus playlist, and turn on Do Not Disturb."</div>
+            <div className="terminal-body">
+              <div className="typewriter-text">"Merky, open my VS Code workspace, start Spotify focus playlist, and turn on Do Not Disturb."</div>
+              <div className="terminal-status">
+                <div className="status-indicator success"></div>
+                SUCCESS: Workflow optimized.
+              </div>
+            </div>
           </TiltCard>
           
-          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
-              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>RESEARCH</div>
-              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+          <TiltCard className="use-case-card terminal-window">
+            <div className="terminal-header">
+              <div className="terminal-controls">
+                <span className="dot dot-red"></span>
+                <span className="dot dot-yellow"></span>
+                <span className="dot dot-green"></span>
+              </div>
+              <div className="use-case-category">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                RESEARCH
+              </div>
             </div>
-            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Search for the best mechanical keyboards under $200 and create a summary in my Notion."</div>
+            <div className="terminal-body">
+              <div className="typewriter-text" style={{ animationDelay: '2s' }}>"Search for the best mechanical keyboards under $200 and create a summary in my Notion."</div>
+              <div className="terminal-status">
+                <div className="status-indicator active"></div>
+                EXECUTING: Scanning top 10 results...
+              </div>
+            </div>
           </TiltCard>
           
-          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
-              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>AUTOMATION</div>
-              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+          <TiltCard className="use-case-card terminal-window">
+            <div className="terminal-header">
+              <div className="terminal-controls">
+                <span className="dot dot-red"></span>
+                <span className="dot dot-yellow"></span>
+                <span className="dot dot-green"></span>
+              </div>
+              <div className="use-case-category">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                AUTOMATION
+              </div>
             </div>
-            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Check my email for today's meeting invites and add them to my Google Calendar."</div>
+            <div className="terminal-body">
+              <div className="typewriter-text" style={{ animationDelay: '4s' }}>"Check my email for today's meeting invites and add them to my Google Calendar."</div>
+              <div className="terminal-status">
+                <div className="status-indicator waiting"></div>
+                QUEUED: Awaiting file system access...
+              </div>
+            </div>
           </TiltCard>
           
-          <TiltCard className="use-case-card" style={{ padding: '2.5rem', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
-              <div className="use-case-tag" style={{ border: '1px solid var(--accent-neon)', color: 'var(--accent-neon)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem' }}>SOCIAL</div>
-              <div style={{ display: 'flex', gap: '4px' }}><div className="status-dot"></div><div className="status-dot"></div><div className="status-dot"></div></div>
+          <TiltCard className="use-case-card terminal-window">
+            <div className="terminal-header">
+              <div className="terminal-controls">
+                <span className="dot dot-red"></span>
+                <span className="dot dot-yellow"></span>
+                <span className="dot dot-green"></span>
+              </div>
+              <div className="use-case-category">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                SOCIAL
+              </div>
             </div>
-            <div className="use-case-cmd" style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'white', lineHeight: '1.4' }}>"Open Twitter and draft a post sharing the results of my latest deep work session."</div>
+            <div className="terminal-body">
+              <div className="typewriter-text" style={{ animationDelay: '6s' }}>"Open Twitter and draft a post sharing the results of my latest deep work session."</div>
+              <div className="terminal-status">
+                <div className="status-indicator active"></div>
+                EXECUTING: Drafting content in browser...
+              </div>
+            </div>
           </TiltCard>
         </div>
       </section>
@@ -527,33 +952,14 @@ const App = () => {
       <section className="reveal container" style={{ padding: '120px 2rem' }}>
         <h2 className="section-title">See Merky in <span className="gradient-text">Action</span></h2>
         <div className="demo-container">
-          <div className="demo-play">
-            <span style={{ fontSize: '2rem', color: 'black', marginLeft: '5px' }}>▶</span>
-          </div>
+          <AnimatedDemo />
         </div>
       </section>
 
       {/* Comparison Section */}
       <section className="reveal container" style={{ padding: '120px 2rem' }}>
         <h2 className="section-title">The Evolution of <span className="gradient-text">Assistance</span></h2>
-        <div className="glass-card comparison-wrap">
-          <table className="comparison-table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Standard LLMs</th>
-                <th>Traditional RPA</th>
-                <th className="merky-col">Merky AI</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>Conversation</td><td>Limited Context</td><td>No</td><td className="merky-col">Natural Friend</td></tr>
-              <tr><td>GUI Execution</td><td>No</td><td>Fragile / Static</td><td className="merky-col">Dynamic Vision</td></tr>
-              <tr><td>Learning Curve</td><td>Low (Chat only)</td><td>High (Dev only)</td><td className="merky-col">ZERO (Just Talk)</td></tr>
-              <tr><td>Speed</td><td>Instant Chat</td><td>Batch Only</td><td className="merky-col">Real-time Action</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <ComparisonHologram />
       </section>
 
       {/* Pricing */}
@@ -618,20 +1024,9 @@ const App = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="reveal container" style={{ padding: '160px 2rem', position: 'relative' }}>
-        <div className="feature-halo" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '800px', height: '800px', opacity: 0.1 }}></div>
-        <TiltCard className="final-cta-box" style={{ padding: '6rem 4rem', textAlign: 'center', border: '1px solid rgba(127, 255, 180, 0.2)' }}>
-          <h2 className="fx-title" style={{ fontSize: '3.5rem', marginBottom: '1.5rem' }}>Ready to meet your AI friend?</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.3rem', marginBottom: '3.5rem', maxWidth: '650px', marginInline: 'auto', lineHeight: '1.6' }}>
-            Join the waitlist today for early access to the future of computing. Experience Merky before anyone else.
-          </p>
-          <div className="fx-btn-container" style={{ justifyContent: 'center' }}>
-            <button className="fx-btn-primary" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem' }}>Join the Waitlist <span className="arrow-circle">→</span></button>
-            <button className="fx-btn-secondary" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem' }}>Watch Demo</button>
-          </div>
-        </TiltCard>
-      </section>
+      {/* Final CTA Redesign */}
+      <InteractiveCTA />
+
 
       {/* Footer */}
       <footer className="reveal container" style={{ borderTop: '1px solid var(--border-glass)', padding: '80px 0', opacity: 0.8, position: 'relative' }}>
