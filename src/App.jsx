@@ -111,10 +111,10 @@ const ParticleField = ({ heroRef }) => {
       // Read mouse position from Hero CSS variables (set in App.jsx listener)
       const mxVal = parseFloat(heroRef.current.style.getPropertyValue('--mx')) || 0.5;
       const myVal = parseFloat(heroRef.current.style.getPropertyValue('--my')) || 0.5;
-      
+
       const containerRect = containerRef.current.getBoundingClientRect();
       const heroRect = heroRef.current.getBoundingClientRect();
-      
+
       // Calculate mouse position relative to emitter center
       const mx = (mxVal - 0.5) * heroRect.width;
       const my = (myVal - 0.5) * heroRect.height;
@@ -138,7 +138,7 @@ const ParticleField = ({ heroRef }) => {
           const angle = Math.atan2(dy, dx);
           const targetOx = Math.cos(angle) * force;
           const targetOy = Math.sin(angle) * force;
-          
+
           data.ox += (targetOx - data.ox) * 0.15;
           data.oy += (targetOy - data.oy) * 0.15;
         } else {
@@ -242,16 +242,16 @@ const AnimatedDemo = () => {
         await new Promise(r => setTimeout(r, 20)); // faster typing
         setTyping(fullText.slice(0, i));
       }
-      
+
       await new Promise(r => setTimeout(r, 1000));
       setStep(1); // Spotify action
-      
+
       await new Promise(r => setTimeout(r, 2500));
       setStep(2); // Browser action
-      
+
       await new Promise(r => setTimeout(r, 2500));
       setStep(3); // Summary
-      
+
       await new Promise(r => setTimeout(r, 6000)); // Pause at end
       runSequence(); // Loop
     };
@@ -285,19 +285,19 @@ const AnimatedDemo = () => {
               {typing}
               <span className="cursor-blink">|</span>
             </div>
-            
+
             {step >= 1 && (
               <div className="chat-bubble assistant reveal-up">
                 <span className="check-icon">✅</span> Playing Focus Playlist on Spotify
               </div>
             )}
-            
+
             {step >= 2 && (
               <div className="chat-bubble assistant reveal-up" style={{ animationDelay: '0.2s' }}>
                 <span className="check-icon">✅</span> Searching "best productivity system"... Opening top 3 links
               </div>
             )}
-            
+
             {step >= 3 && (
               <div className="chat-bubble assistant reveal-up" style={{ animationDelay: '0.4s' }}>
                 <span className="check-icon">✅</span> Analysis complete. I've summarized the key points from Notion, Trello, and Obsidian. Want the 1-minute version or deep dive?
@@ -362,7 +362,7 @@ const MagneticButton = ({ children, className, style }) => {
     const { left, top, width, height } = btnRef.current.getBoundingClientRect();
     const x = clientX - (left + width / 2);
     const y = clientY - (top + height / 2);
-    
+
     // Magnetic pull: move button towards cursor (max 15px)
     setPosition({ x: x * 0.15, y: y * 0.15 });
   };
@@ -405,7 +405,7 @@ const StarParticles = () => {
   return (
     <div className="star-drift-bg">
       {stars.map(s => (
-        <div 
+        <div
           key={s.id}
           className="star-drift-particle"
           style={{
@@ -460,7 +460,7 @@ const InteractiveCTA = () => {
         const dx = mx - node.x;
         const dy = my - node.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        
+
         // Push nodes away from mouse if close
         if (dist < 20) {
           const force = (20 - dist) * 0.5;
@@ -480,7 +480,7 @@ const InteractiveCTA = () => {
       <StarParticles />
       <div className="cta-neural-bg">
         {nodes.map(node => (
-          <div 
+          <div
             key={node.id}
             className="neural-node"
             style={{
@@ -494,19 +494,19 @@ const InteractiveCTA = () => {
           />
         ))}
       </div>
-      
+
       <div className="cta-glow-pulse"></div>
       <OrbitalCore />
-      
+
       <TiltCard className="final-cta-box-modern">
         <div className="cyber-border-wrap"></div>
         <h2 className="wow-title">
-          Ready to meet your <br/>
+          Ready to meet your <br />
           <span className="cyber-glow">AI FRIEND?</span>
           <span className="cyber-glow-reflect">AI FRIEND?</span>
         </h2>
         <p className="cta-subtext">
-          Join the waitlist today for early access to the future of computing. 
+          Join the waitlist today for early access to the future of computing.
           Experience Merky before anyone else.
         </p>
         <div className="cta-actions">
@@ -657,19 +657,19 @@ const App = () => {
           </h1>
           <div className="feature-row-fx">
             <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" /></svg>
               Talk naturally
             </div>
             <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="M6 11c0-2.209 1.791-4 4-4h4c2.209 0 4 1.791 4 4v7c0 1.105-.895 2-2 2H8c-1.105 0-2-.895-2-2v-7z"/><path d="M6 12h12"/><path d="M12 7V4"/><path d="M11 4h2"/><path d="M10 11v2"/><path d="M14 11v2"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="M6 11c0-2.209 1.791-4 4-4h4c2.209 0 4 1.791 4 4v7c0 1.105-.895 2-2 2H8c-1.105 0-2-.895-2-2v-7z" /><path d="M6 12h12" /><path d="M12 7V4" /><path d="M11 4h2" /><path d="M10 11v2" /><path d="M14 11v2" /></svg>
               Operate apps
             </div>
             <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
               Privacy first
             </div>
             <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m13 2-2 10h3L11 22l2-10h-3l2-10Z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m13 2-2 10h3L11 22l2-10h-3l2-10Z" /></svg>
               Watch it happen
             </div>
           </div>
@@ -685,16 +685,16 @@ const App = () => {
           <div className="social-links-fx">
             <span style={{ marginRight: '1rem', opacity: 0.6, fontSize: '0.9rem' }}>JOIN THE COMMUNITY</span>
             <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
             </a>
             <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
             </a>
             <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
             </a>
             <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 10l-4 4l6 6l4-16l-18 7l4 2l2 6l3-4"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 10l-4 4l6 6l4-16l-18 7l4 2l2 6l3-4" /></svg>
             </a>
           </div>
           <div className="scroll-hint-fx">
@@ -703,19 +703,19 @@ const App = () => {
         </div>
       </section>
 
-       {/* Feature Section — Bento Grid */}
+      {/* Feature Section — Bento Grid */}
       <section id="features" className="reveal container features-section-modern" style={{ padding: '160px 2rem' }}>
         <div className="data-dots-bg"></div>
         <div className="feature-halo" style={{ top: '15%', left: '5%' }}></div>
         <div className="feature-halo" style={{ bottom: '10%', right: '0%', opacity: 0.06 }}></div>
-        
+
         <h2 className="section-title reveal" style={{ position: 'relative', zIndex: 1 }}>
           Designed for <span className="gradient-text" style={{ fontSize: '1.2em' }}>Freedom</span>
         </h2>
         <p className="reveal" style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '1.15rem', maxWidth: '600px', margin: '-2rem auto 4rem', position: 'relative', zIndex: 1 }}>
           Three modes. One AI. Unlimited control over your digital life.
         </p>
-        
+
         <div className="bento-grid reveal" style={{ '--delay': '0.3s' }}>
           {/* Large left card — Friend Mode */}
           <TiltCard className="bento-card bento-card-lg">
@@ -728,14 +728,14 @@ const App = () => {
               <span className="bento-label">01</span>
             </div>
             <div className="bento-icon-area">
-              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
             </div>
             <h3 className="bento-title">Friend Mode</h3>
             <p className="bento-desc">Talk naturally, react, and keep you company throughout the day. Your desktop, now with a soul.</p>
             <div className="bento-terminal">
               <div className="bento-term-bar"><span></span><span></span><span></span></div>
               <div className="bento-term-body">
-                <span className="term-prompt">merky&gt;</span> Hey, what's on my calendar?<br/>
+                <span className="term-prompt">merky&gt;</span> Hey, what's on my calendar?<br />
                 <span className="term-response">You have 2 meetings today...</span>
               </div>
             </div>
@@ -755,7 +755,7 @@ const App = () => {
               </div>
               <div className="bento-row">
                 <div className="bento-icon-area-sm">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="10" x="4" y="11" rx="2"/><path d="M12 11V7"/><path d="M12 7V3"/><path d="M9 3h6"/><circle cx="10" cy="15" r="1"/><circle cx="14" cy="15" r="1"/><circle cx="12" cy="17" r="1"/></svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="10" x="4" y="11" rx="2" /><path d="M12 11V7" /><path d="M12 7V3" /><path d="M9 3h6" /><circle cx="10" cy="15" r="1" /><circle cx="14" cy="15" r="1" /><circle cx="12" cy="17" r="1" /></svg>
                 </div>
                 <div>
                   <h3 className="bento-title" style={{ fontSize: '1.4rem' }}>Operator Mode</h3>
@@ -763,10 +763,10 @@ const App = () => {
                 </div>
               </div>
               <div className="bento-actions-row">
-                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Click</div>
-                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Type</div>
-                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Scroll</div>
-                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7"/></svg> Launch</div>
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7" /></svg> Click</div>
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7" /></svg> Type</div>
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7" /></svg> Scroll</div>
+                <div className="bento-action-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 5 5L20 7" /></svg> Launch</div>
               </div>
             </TiltCard>
 
@@ -782,7 +782,7 @@ const App = () => {
               </div>
               <div className="bento-row">
                 <div className="bento-icon-area-sm">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>
                 </div>
                 <div>
                   <h3 className="bento-title" style={{ fontSize: '1.4rem' }}>Safe &amp; Secure</h3>
@@ -791,12 +791,12 @@ const App = () => {
               </div>
               <div className="bento-perm-bar">
                 <div className="bento-perm-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                   <span>Screen Access</span>
                   <span className="perm-granted">Granted</span>
                 </div>
                 <div className="bento-perm-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                   <span>File System</span>
                   <span className="perm-ask">Ask Each Time</span>
                 </div>
@@ -815,7 +815,7 @@ const App = () => {
             <TiltCard className="step-card">
               <div className="step-header">
                 <div className="step-icon-box">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-neon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>
                 </div>
                 <div className="step-number-tag">01</div>
               </div>
@@ -831,7 +831,7 @@ const App = () => {
             <TiltCard className="step-card">
               <div className="step-header">
                 <div className="step-icon-box" style={{ background: 'rgba(96, 165, 250, 0.1)', borderColor: 'rgba(96, 165, 250, 0.2)' }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>
                 </div>
                 <div className="step-number-tag" style={{ color: '#60a5fa' }}>02</div>
               </div>
@@ -847,7 +847,7 @@ const App = () => {
             <TiltCard className="step-card">
               <div className="step-header">
                 <div className="step-icon-box" style={{ background: 'rgba(192, 132, 252, 0.1)', borderColor: 'rgba(192, 132, 252, 0.2)' }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
                 </div>
                 <div className="step-number-tag" style={{ color: '#c084fc' }}>03</div>
               </div>
@@ -870,7 +870,7 @@ const App = () => {
                 <span className="dot dot-green"></span>
               </div>
               <div className="use-case-category">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2" /><line x1="8" x2="16" y1="21" y2="21" /><line x1="12" x2="12" y1="17" y2="21" /></svg>
                 WORKSPACE
               </div>
             </div>
@@ -882,7 +882,7 @@ const App = () => {
               </div>
             </div>
           </TiltCard>
-          
+
           <TiltCard className="use-case-card terminal-window">
             <div className="terminal-header">
               <div className="terminal-controls">
@@ -891,7 +891,7 @@ const App = () => {
                 <span className="dot dot-green"></span>
               </div>
               <div className="use-case-category">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
                 RESEARCH
               </div>
             </div>
@@ -903,7 +903,7 @@ const App = () => {
               </div>
             </div>
           </TiltCard>
-          
+
           <TiltCard className="use-case-card terminal-window">
             <div className="terminal-header">
               <div className="terminal-controls">
@@ -912,7 +912,7 @@ const App = () => {
                 <span className="dot dot-green"></span>
               </div>
               <div className="use-case-category">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>
                 AUTOMATION
               </div>
             </div>
@@ -924,7 +924,7 @@ const App = () => {
               </div>
             </div>
           </TiltCard>
-          
+
           <TiltCard className="use-case-card terminal-window">
             <div className="terminal-header">
               <div className="terminal-controls">
@@ -933,7 +933,7 @@ const App = () => {
                 <span className="dot dot-green"></span>
               </div>
               <div className="use-case-category">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                 SOCIAL
               </div>
             </div>
@@ -977,7 +977,7 @@ const App = () => {
               </ul>
               <button className="fx-btn-secondary" style={{ width: '100%' }}>Current Plan</button>
             </TiltCard>
-            
+
             <TiltCard className="pricing-card featured" style={{ padding: '3.5rem 2rem', border: '1px solid var(--accent-neon)' }}>
               <div className="popular-badge" style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'var(--accent-neon)', color: 'black', padding: '0.2rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>MOST POPULAR</div>
               <div><h3 style={{ fontSize: '1.6rem' }}>Pro</h3><p className="price" style={{ color: 'var(--accent-neon)' }}>$19<span style={{ fontSize: '1rem' }}>/mo</span></p></div>
@@ -989,7 +989,7 @@ const App = () => {
               </ul>
               <button className="fx-btn-primary" style={{ width: '100%' }}>Join Early Access</button>
             </TiltCard>
-            
+
             <TiltCard className="pricing-card" style={{ padding: '3rem 2rem' }}>
               <div><h3 style={{ fontSize: '1.6rem' }}>Teams</h3><p className="price">$49<span style={{ fontSize: '1rem' }}>/mo</span></p></div>
               <ul className="pricing-features" style={{ margin: '2rem 0', listStyle: 'none', padding: 0 }}>
@@ -1036,9 +1036,9 @@ const App = () => {
             <p className="logo-text" style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>Merky</p>
             <p>Your AI Operator Friend.</p>
             <div className="social-links-footer" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-              <a href="#" className="social-icon-wrapper-small"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
-              <a href="#" className="social-icon-wrapper-small"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg></a>
-              <a href="#" className="social-icon-wrapper-small"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+              <a href="#" className="social-icon-wrapper-small"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg></a>
+              <a href="#" className="social-icon-wrapper-small"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg></a>
+              <a href="#" className="social-icon-wrapper-small"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg></a>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '4rem' }}>
