@@ -1444,3 +1444,227 @@ section {
     top: 18%;
   }
 }
+
+/* =========================================================================
+   PURE CSS GLASSMORPHISM HERO BLOB
+   ========================================================================= */
+
+.css-glass-blob-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  /* Let clicks pass through to UI underneath/above */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  /* Sit behind the main text (which is z-index 10) */
+  filter: drop-shadow(0 0 60px rgba(127, 255, 180, 0.08));
+}
+
+/* Base shape for blobs */
+.blob-main,
+.blob-secondary {
+  position: absolute;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  transition: all 4s ease-in-out;
+  backdrop-filter: blur(40px) saturate(120%);
+  -webkit-backdrop-filter: blur(40px) saturate(120%);
+}
+
+/* Main larger blob - deep olive to dark blue/indigo gradient with intense edge lighting */
+.blob-main {
+  width: 700px;
+  height: 650px;
+  background: radial-gradient(circle at 35% 25%,
+      rgba(100, 110, 80, 0.45) 0%,
+      rgba(40, 45, 40, 0.5) 40%,
+      rgba(20, 25, 40, 0.8) 70%,
+      rgba(10, 12, 20, 0.95) 100%);
+  animation: blobFlowMain 18s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  transform-origin: center;
+  /* Premium glass inner illumination / highlights */
+  box-shadow:
+    inset 0 35px 50px -15px rgba(255, 255, 255, 0.18),
+    inset -10px 10px 40px rgba(255, 255, 255, 0.08),
+    inset 20px -20px 80px rgba(5, 10, 30, 0.9),
+    0 0 50px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Secondary overlapping blob - darker indigo/blue tones positioned lower-right */
+.blob-secondary {
+  width: 500px;
+  height: 500px;
+  margin-top: 150px;
+  margin-left: 200px;
+  background: radial-gradient(circle at 60% 50%,
+      rgba(30, 50, 90, 0.5) 0%,
+      rgba(15, 20, 40, 0.7) 60%,
+      rgba(5, 5, 10, 0.9) 100%);
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  animation: blobFlowSecondary 22s infinite alternate-reverse cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  box-shadow:
+    inset 20px 20px 60px rgba(50, 80, 150, 0.15),
+    inset -30px -30px 80px rgba(0, 0, 0, 0.8),
+    inset 0 10px 20px rgba(255, 255, 255, 0.03);
+}
+
+/* Organic shape morphing animations */
+@keyframes blobFlowMain {
+  0% {
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    transform: rotate(0deg) scale(1) translate(0, 0);
+  }
+
+  33% {
+    border-radius: 60% 40% 50% 50% / 50% 60% 40% 40%;
+    transform: rotate(2deg) scale(1.02) translate(-10px, 10px);
+  }
+
+  66% {
+    border-radius: 50% 50% 40% 60% / 60% 40% 50% 50%;
+    transform: rotate(-1deg) scale(0.98) translate(10px, -10px);
+  }
+
+  100% {
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    transform: rotate(0.5deg) scale(1.01) translate(-5px, 5px);
+  }
+}
+
+@keyframes blobFlowSecondary {
+  0% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: rotate(0deg) scale(1) translate(0, 0);
+  }
+
+  50% {
+    border-radius: 40% 60% 50% 50% / 40% 50% 50% 60%;
+    transform: rotate(-3deg) scale(1.05) translate(-15px, -15px);
+  }
+
+  100% {
+    border-radius: 50% 50% 60% 40% / 50% 40% 40% 50%;
+    transform: rotate(2deg) scale(0.95) translate(10px, 10px);
+  }
+}
+
+/* Particle Layer inside the blob container */
+.blob-particles-layer {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.blob-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: #3aff9b;
+  box-shadow: 0 0 12px #3aff9b, 0 0 24px #3aff9b;
+  opacity: 0.8;
+}
+
+.bp-1 {
+  width: 3px;
+  height: 3px;
+  top: 25%;
+  left: 35%;
+  animation: floatP1 12s infinite ease-in-out;
+}
+
+.bp-2 {
+  width: 4px;
+  height: 4px;
+  top: 65%;
+  left: 75%;
+  animation: floatP2 16s infinite ease-in-out reverse;
+  opacity: 0.6;
+}
+
+.bp-3 {
+  width: 2.5px;
+  height: 2.5px;
+  top: 75%;
+  left: 25%;
+  animation: floatP1 14s infinite ease-in-out 1s;
+  opacity: 0.7;
+}
+
+.bp-4 {
+  width: 4.5px;
+  height: 4.5px;
+  top: 35%;
+  left: 85%;
+  animation: floatP2 18s infinite ease-in-out 2s;
+  opacity: 0.5;
+}
+
+.bp-5 {
+  width: 5px;
+  height: 5px;
+  top: 40%;
+  left: 45%;
+  animation: floatP1 20s infinite ease-in-out 3s;
+  filter: blur(2.5px);
+  opacity: 0.3;
+}
+
+.bp-6 {
+  width: 3.5px;
+  height: 3.5px;
+  top: 85%;
+  left: 60%;
+  animation: floatP2 15s infinite ease-in-out 0.5s;
+}
+
+.bp-7 {
+  width: 3px;
+  height: 3px;
+  top: 15%;
+  left: 65%;
+  animation: floatP1 13s infinite ease-in-out 2s;
+}
+
+.bp-8 {
+  width: 2px;
+  height: 2px;
+  top: 50%;
+  left: 15%;
+  animation: floatP2 17s infinite ease-in-out 4s;
+  opacity: 0.5;
+}
+
+@keyframes floatP1 {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translate(25px, -35px) scale(1.4);
+    opacity: 0.3;
+  }
+}
+
+@keyframes floatP2 {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translate(-30px, 25px) scale(0.8);
+    opacity: 0.9;
+  }
+}

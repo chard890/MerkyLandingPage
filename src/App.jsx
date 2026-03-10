@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import './App.css';
-
 // Pool of HUD content
 const HUD_POOL = [
   { type: 'box', content: '54' },
@@ -631,6 +630,24 @@ const App = () => {
       {/* Hero Section */}
       <section className="hero-section" ref={heroRef} style={{ '--mx': '0.5', '--my': '0.5' }}>
         <div className="hero-bg-visuals">
+
+          {/* CSS Glassmorphism Blob Centerpiece */}
+          <div className="css-glass-blob-container">
+            <div className="blob-main"></div>
+            <div className="blob-secondary"></div>
+            {/* Glowing Particles */}
+            <div className="blob-particles-layer">
+              <div className="blob-particle bp-1"></div>
+              <div className="blob-particle bp-2"></div>
+              <div className="blob-particle bp-3"></div>
+              <div className="blob-particle bp-4"></div>
+              <div className="blob-particle bp-5"></div>
+              <div className="blob-particle bp-6"></div>
+              <div className="blob-particle bp-7"></div>
+              <div className="blob-particle bp-8"></div>
+            </div>
+          </div>
+
           <div className="perspective-wrapper parallax-layer" style={{ '--depth': 0.1 }}>
             <div className="grid-plane grid-plane-top"></div>
             <div className="grid-plane grid-plane-bottom"></div>

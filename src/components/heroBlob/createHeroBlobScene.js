@@ -337,6 +337,29 @@ export function createHeroBlobScene({ mount, reducedMotion = false }) {
   topHighlight.position.set(-0.46, 0.86, 0.18);
   blobGroup.add(topHighlight);
 
+  const particlesGeometry = new THREE.BufferGeometry();
+  const particleCount = 45;
+  const pPos = [];
+  for (let i = 0; i < particleCount; i++) {
+    const r = 1.3 + Math.pow(Math.random(), 1.5) * 1.5;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos((Math.random() * 2) - 1);
+    pPos.push(r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi));
+  }
+  particlesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(pPos, 3));
+
+  const particlesMaterial = new THREE.PointsMaterial({
+    map: highlightTexture,
+    color: new THREE.Color('#3aff9b'),
+    size: 0.16,
+    transparent: true,
+    opacity: 0.4,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+  blobGroup.add(particleSystem);
+
   const backgroundPlate = new THREE.Mesh(
     new THREE.PlaneGeometry(7.2, 5.4),
     new THREE.MeshBasicMaterial({
@@ -560,6 +583,10 @@ export function createHeroBlobScene({ mount, reducedMotion = false }) {
     ambientGlow.material.opacity = 0.13 + 0.025 * Math.sin(elapsed * 0.18);
     topHighlight.material.opacity = 0.08 + interaction.hoverStrength * 0.03;
 
+    particleSystem.rotation.y = elapsed * 0.06 * floatMotion;
+    particleSystem.rotation.x = elapsed * 0.03 * floatMotion;
+    particlesMaterial.opacity = 0.4 + 0.2 * Math.sin(elapsed * 0.8);
+
     renderer.render(scene, camera);
   }
 
@@ -591,6 +618,8 @@ export function createHeroBlobScene({ mount, reducedMotion = false }) {
       ambientGlow.material.dispose();
       topHighlight.material.map.dispose();
       topHighlight.material.dispose();
+      particlesGeometry.dispose();
+      particlesMaterial.dispose();
       backgroundPlate.geometry.dispose();
       backgroundPlate.material.dispose();
       renderer.dispose();
