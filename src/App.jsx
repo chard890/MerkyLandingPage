@@ -572,7 +572,17 @@ const ComparisonHologram = () => {
 const App = () => {
   const [activeFaq, setActiveFaq] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -610,7 +620,7 @@ const App = () => {
       <nav className={`navbar ${menuOpen ? 'menu-is-open' : ''}`}>
         <div className="container">
           <div className="nav-left-part">
-            <button 
+            <button
               className={`burger-btn ${menuOpen ? 'active' : ''}`}
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Toggle Menu"
@@ -621,8 +631,8 @@ const App = () => {
             </button>
             <div className="logo-area">
               <svg className="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 4L4 20H20L12 4Z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-                <circle cx="12" cy="14" r="2" fill="white"/>
+                <path d="M12 4L4 20H20L12 4Z" stroke="white" strokeWidth="2" strokeLinejoin="round" />
+                <circle cx="12" cy="14" r="2" fill="white" />
               </svg>
               MERKY
             </div>
@@ -638,14 +648,6 @@ const App = () => {
               <a href="#login" className="dropdown-link" onClick={() => setMenuOpen(false)}>Login / Register</a>
             </div>
           </div>
-
-          <div className="nav-right-actions">
-            <div className="lang-selector">🌐 English ▾</div>
-            <button className="fx-btn-primary" style={{ padding: '0.4rem 0.4rem 0.4rem 1.6rem', fontSize: '0.85rem' }}>
-              Join Waitlist <span className="arrow-circle" style={{ width: '28px', height: '28px', fontSize: '1rem' }}>→</span>
-            </button>
-            <button className="fx-btn-secondary" style={{ padding: '0.4rem 1.8rem', fontSize: '0.85rem' }}>Free trial</button>
-          </div>
         </div>
       </nav>
 
@@ -653,20 +655,37 @@ const App = () => {
       <section className="hero-section" ref={heroRef} style={{ '--mx': '0.5', '--my': '0.5' }}>
         <div className="hero-bg-visuals">
 
-          {/* CSS Glassmorphism Blob Centerpiece */}
-          <div className="css-glass-blob-container">
-            <div className="blob-main"></div>
-            <div className="blob-secondary"></div>
-            {/* Glowing Particles */}
-            <div className="blob-particles-layer">
-              <div className="blob-particle bp-1"></div>
-              <div className="blob-particle bp-2"></div>
-              <div className="blob-particle bp-3"></div>
-              <div className="blob-particle bp-4"></div>
-              <div className="blob-particle bp-5"></div>
-              <div className="blob-particle bp-6"></div>
-              <div className="blob-particle bp-7"></div>
-              <div className="blob-particle bp-8"></div>
+          {/* Premium AI Core Centerpiece */}
+          <div
+            className="premium-ai-core-container"
+            style={{
+              transform: `translate(-50%, calc(-50% - ${scrollY * 0.15}px)) scale(${Math.max(0.85, 1 - scrollY * 0.0003)})`
+            }}
+          >
+            <div className="core-secondary-aura"></div>
+            <div className="core-main-form">
+              <div className="core-inner-glow"></div>
+              <div className="core-plasma"></div>
+
+              <div className="core-fog"></div>
+            </div>
+
+            {/* Cinematic Particles */}
+            <div className="core-particles">
+              <div className="core-dust cd-1"></div>
+              <div className="core-dust cd-2"></div>
+              <div className="core-dust cd-3"></div>
+              <div className="core-dust cd-4"></div>
+              <div className="core-dust cd-5"></div>
+              <div className="core-dust cd-6"></div>
+              <div className="core-dust cd-7"></div>
+              <div className="core-dust cd-8"></div>
+              <div className="core-spark cs-1"></div>
+              <div className="core-spark cs-2"></div>
+              <div className="core-spark cs-3"></div>
+              <div className="core-spark cs-4"></div>
+              <div className="core-spark cs-5"></div>
+              <div className="core-spark cs-6"></div>
             </div>
           </div>
 
@@ -675,12 +694,11 @@ const App = () => {
             <div className="grid-plane grid-plane-bottom"></div>
           </div>
           <div className="hero-glow-center"></div>
-          <div className="v-light-beam parallax-layer" style={{ '--depth': 0.08 }}></div>
-          <div className="scanlines" style={{ opacity: 0.15 }}></div>
+
+
           <div className="cursor-glow"></div>
 
-          {/* Floating HUD elements with drift + cycling */}
-          <FloatingHUD />
+
 
           {/* Per-particle interactive burst */}
           <ParticleField heroRef={heroRef} />
@@ -691,52 +709,8 @@ const App = () => {
             <h1 className="hero-brand-title">MERKY.</h1>
             <p className="hero-brand-sub">Our animated AI friend that can operate your computer</p>
           </div>
-          <div className="feature-row-fx">
-            <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" /></svg>
-              Talk naturally
-            </div>
-            <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="M6 11c0-2.209 1.791-4 4-4h4c2.209 0 4 1.791 4 4v7c0 1.105-.895 2-2 2H8c-1.105 0-2-.895-2-2v-7z" /><path d="M6 12h12" /><path d="M12 7V4" /><path d="M11 4h2" /><path d="M10 11v2" /><path d="M14 11v2" /></svg>
-              Operate apps
-            </div>
-            <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-              Privacy first
-            </div>
-            <div className="feature-tag-fx">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m13 2-2 10h3L11 22l2-10h-3l2-10Z" /></svg>
-              Watch it happen
-            </div>
-          </div>
-          <div className="fx-btn-container">
-            <button className="fx-btn-primary">
-              Get Early Access <span className="arrow-circle">→</span>
-            </button>
-            <button className="fx-btn-secondary">Watch Demo</button>
-          </div>
         </div>
 
-        <div className="hero-footer-hints">
-          <div className="social-links-fx">
-            <span style={{ marginRight: '1rem', opacity: 0.6, fontSize: '0.9rem' }}>JOIN THE COMMUNITY</span>
-            <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
-            </a>
-            <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
-            </a>
-            <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
-            </a>
-            <a href="#" className="social-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 10l-4 4l6 6l4-16l-18 7l4 2l2 6l3-4" /></svg>
-            </a>
-          </div>
-          <div className="scroll-hint-fx">
-            Scroll to explore <span>↓</span>
-          </div>
-        </div>
       </section>
 
       {/* Feature Section — Bento Grid */}
