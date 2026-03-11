@@ -571,6 +571,7 @@ const ComparisonHologram = () => {
 
 const App = () => {
   const [activeFaq, setActiveFaq] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const heroRef = useRef(null);
 
   useEffect(() => {
@@ -606,17 +607,38 @@ const App = () => {
   return (
     <div className="app-wrapper">
       {/* Navigation */}
-      <nav className="navbar">
+      <nav className={`navbar ${menuOpen ? 'menu-is-open' : ''}`}>
         <div className="container">
-          <div className="logo-area">Merky</div>
-          <div className="nav-pill-container">
-            <a href="#home" className="nav-link active">Home</a>
-            <a href="#how-it-works" className="nav-link">How it works</a>
-            <a href="#features" className="nav-link">Features</a>
-            <a href="#pricing" className="nav-link">Pricing</a>
-            <a href="#faq" className="nav-link">FAQ</a>
-            <a href="#login" className="nav-link">Login / Register</a>
+          <div className="nav-left-part">
+            <button 
+              className={`burger-btn ${menuOpen ? 'active' : ''}`}
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Toggle Menu"
+            >
+              <div className="burger-line"></div>
+              <div className="burger-line"></div>
+              <div className="burger-line"></div>
+            </button>
+            <div className="logo-area">
+              <svg className="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4L4 20H20L12 4Z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+                <circle cx="12" cy="14" r="2" fill="white"/>
+              </svg>
+              MERKY
+            </div>
           </div>
+
+          <div className={`nav-dropdown ${menuOpen ? 'active' : ''}`}>
+            <div className="dropdown-content">
+              <a href="#home" className="dropdown-link" onClick={() => setMenuOpen(false)}>Home</a>
+              <a href="#how-it-works" className="dropdown-link" onClick={() => setMenuOpen(false)}>How it works</a>
+              <a href="#features" className="dropdown-link" onClick={() => setMenuOpen(false)}>Features</a>
+              <a href="#pricing" className="dropdown-link" onClick={() => setMenuOpen(false)}>Pricing</a>
+              <a href="#faq" className="dropdown-link" onClick={() => setMenuOpen(false)}>FAQ</a>
+              <a href="#login" className="dropdown-link" onClick={() => setMenuOpen(false)}>Login / Register</a>
+            </div>
+          </div>
+
           <div className="nav-right-actions">
             <div className="lang-selector">🌐 English ▾</div>
             <button className="fx-btn-primary" style={{ padding: '0.4rem 0.4rem 0.4rem 1.6rem', fontSize: '0.85rem' }}>
@@ -665,13 +687,10 @@ const App = () => {
         </div>
 
         <div className="hero-content-fx">
-          <div className="meta-badge-text">
-            Meet <span>Merky</span>
+          <div className="hero-brand-container">
+            <h1 className="hero-brand-title">MERKY.</h1>
+            <p className="hero-brand-sub">Our animated AI friend that can operate your computer</p>
           </div>
-          <h1 className="fx-title">
-            Your animated AI friend<br />
-            that can operate your computer
-          </h1>
           <div className="feature-row-fx">
             <div className="feature-tag-fx">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="fx-icon"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" /></svg>
