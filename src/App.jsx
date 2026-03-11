@@ -89,14 +89,68 @@ const ParticleField = ({ heroRef }) => {
   // Stable particle initialization
   const particleData = useRef(null);
   if (!particleData.current) {
-    particleData.current = Array.from({ length: 40 }).map(() => ({
-      ox: 0, oy: 0,
-      size: 2 + Math.random() * 4,
-      tx: (Math.random() - 0.5) * 800,
-      ty: (Math.random() - 0.5) * 400,
-      delay: Math.random() * 6,
-      duration: 4 + Math.random() * 4,
-    }));
+    const createParticle = () => {
+      const roll = Math.random();
+      const layer = roll < 0.34 ? 'near' : roll < 0.76 ? 'mid' : 'far';
+      const configs = {
+        near: {
+          size: 1.4 + Math.random() * 2.6,
+          tx: (Math.random() - 0.5) * (640 + Math.random() * 260),
+          ty: (Math.random() - 0.5) * (360 + Math.random() * 220),
+          duration: 5.2 + Math.random() * 2.6,
+          driftDuration: 5.6 + Math.random() * 1.8,
+          driftEase: 'cubic-bezier(0.18, 0.84, 0.24, 1)',
+          blur: 0.1 + Math.random() * 0.45,
+          alpha: 0.68 + Math.random() * 0.24,
+          brightness: 1,
+          hue: ['188, 255, 224', '152, 255, 206', '210, 255, 235'][Math.floor(Math.random() * 3)],
+        },
+        mid: {
+          size: 2.8 + Math.random() * 5.2,
+          tx: (Math.random() - 0.5) * (980 + Math.random() * 520),
+          ty: (Math.random() - 0.5) * (620 + Math.random() * 360),
+          duration: 7 + Math.random() * 4,
+          driftDuration: 7.8 + Math.random() * 2.6,
+          driftEase: 'cubic-bezier(0.2, 0.78, 0.28, 1)',
+          blur: 0.5 + Math.random() * 1.2,
+          alpha: 0.34 + Math.random() * 0.28,
+          brightness: 0.82,
+          hue: ['127, 255, 180', '92, 255, 164', '113, 255, 190', '65, 214, 135'][Math.floor(Math.random() * 4)],
+        },
+        far: {
+          size: 6 + Math.random() * 10,
+          tx: (Math.random() - 0.5) * (1320 + Math.random() * 780),
+          ty: (Math.random() - 0.5) * (860 + Math.random() * 560),
+          duration: 9 + Math.random() * 5,
+          driftDuration: 10.8 + Math.random() * 3.6,
+          driftEase: 'cubic-bezier(0.24, 0.64, 0.34, 1)',
+          blur: 1.8 + Math.random() * 3.4,
+          alpha: 0.14 + Math.random() * 0.14,
+          brightness: 0.58,
+          hue: ['76, 214, 149', '88, 235, 156', '57, 198, 120'][Math.floor(Math.random() * 3)],
+        },
+      };
+
+      const config = configs[layer];
+      return {
+        ox: 0,
+        oy: 0,
+        layer,
+        size: config.size,
+        tx: config.tx,
+        ty: config.ty,
+        delay: Math.random() * 9,
+        duration: config.duration,
+        driftDuration: config.driftDuration,
+        driftEase: config.driftEase,
+        blur: config.blur,
+        alpha: config.alpha,
+        brightness: config.brightness,
+        hue: config.hue,
+      };
+    };
+
+    particleData.current = Array.from({ length: 72 }).map(createParticle);
   }
 
   useEffect(() => {
@@ -168,12 +222,18 @@ const ParticleField = ({ heroRef }) => {
         <div
           key={i}
           ref={el => particlesRef.current[i] = el}
-          className="fx-particle"
+          className={`fx-particle fx-particle-${p.layer}`}
           style={{
             width: `${p.size}px`,
             height: `${p.size}px`,
             '--tx': `${p.tx}px`,
             '--ty': `${p.ty}px`,
+            '--particle-color': p.hue,
+            '--particle-alpha': p.alpha,
+            '--particle-blur': `${p.blur}px`,
+            '--particle-brightness': p.brightness,
+            '--particle-drift-ease': p.driftEase,
+            '--particle-drift-duration': `${p.driftDuration}s`,
             animationDelay: `${p.delay}s`,
             animationDuration: `${p.duration}s`,
           }}
@@ -570,15 +630,12 @@ const ComparisonHologram = () => {
 };
 
 const App = () => {
-  const MENU_ANIMATION_MS = 720;
   const [activeFaq, setActiveFaq] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuState, setMenuState] = useState('closed');
   const [menuRendered, setMenuRendered] = useState(false);
-  const [menuClosing, setMenuClosing] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef(null);
   const navRef = useRef(null);
-  const menuCloseTimerRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -617,41 +674,31 @@ const App = () => {
     };
   }, []);
 
-  const clearMenuCloseTimer = useCallback(() => {
-    if (menuCloseTimerRef.current) {
-      window.clearTimeout(menuCloseTimerRef.current);
-      menuCloseTimerRef.current = null;
-    }
-  }, []);
-
   const openMenu = useCallback(() => {
-    clearMenuCloseTimer();
+    if (menuState === 'open' || menuState === 'opening') {
+      return;
+    }
+
     setMenuRendered(true);
-    setMenuClosing(false);
-    setMenuOpen(true);
-  }, [clearMenuCloseTimer]);
+    setMenuState('opening');
+  }, [menuState]);
 
   const closeMenu = useCallback(() => {
-    clearMenuCloseTimer();
-    setMenuOpen(false);
-    setMenuClosing(true);
-    menuCloseTimerRef.current = window.setTimeout(() => {
-      setMenuRendered(false);
-      setMenuClosing(false);
-      menuCloseTimerRef.current = null;
-    }, MENU_ANIMATION_MS);
-  }, [MENU_ANIMATION_MS, clearMenuCloseTimer]);
+    if (!menuRendered || menuState === 'closing' || menuState === 'closed') {
+      return;
+    }
+
+    setMenuState('closing');
+  }, [menuRendered, menuState]);
 
   const toggleMenu = useCallback(() => {
-    if (menuOpen) {
+    if (menuState === 'open' || menuState === 'opening') {
       closeMenu();
       return;
     }
 
     openMenu();
-  }, [closeMenu, menuOpen, openMenu]);
-
-  useEffect(() => () => clearMenuCloseTimer(), [clearMenuCloseTimer]);
+  }, [closeMenu, menuState, openMenu]);
 
   useEffect(() => {
     if (!menuRendered) {
@@ -681,7 +728,25 @@ const App = () => {
     };
   }, [closeMenu, menuRendered]);
 
+  const handleMenuAnimationEnd = useCallback((event) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (menuState === 'opening') {
+      setMenuState('open');
+      return;
+    }
+
+    if (menuState === 'closing') {
+      setMenuRendered(false);
+      setMenuState('closed');
+    }
+  }, [menuState]);
+
   const toggleFaq = (index) => setActiveFaq(activeFaq === index ? null : index);
+  const menuIsVisible = menuState === 'opening' || menuState === 'open';
+  const menuAnimationClass = menuRendered ? `is-${menuState}` : '';
 
   return (
     <div className="app-wrapper">
@@ -690,10 +755,10 @@ const App = () => {
         <div className="container">
           <div className="nav-left-part">
             <button
-              className={`burger-btn ${menuOpen ? 'active' : ''}`}
+              className={`burger-btn ${menuRendered ? 'active' : ''}`}
               onClick={toggleMenu}
               aria-label="Toggle Menu"
-              aria-expanded={menuOpen}
+              aria-expanded={menuIsVisible}
               aria-controls="site-menu"
             >
               <div className="burger-line"></div>
@@ -712,8 +777,9 @@ const App = () => {
           {menuRendered && (
             <div
               id="site-menu"
-              className={`nav-dropdown ${menuOpen ? 'active' : ''} ${menuClosing ? 'closing' : ''}`}
-              aria-hidden={!menuOpen}
+              className={`nav-dropdown ${menuAnimationClass}`}
+              aria-hidden={!menuIsVisible}
+              onAnimationEnd={handleMenuAnimationEnd}
             >
               <div className="nav-dropdown-surface">
                 <div className="dropdown-content">
@@ -738,14 +804,20 @@ const App = () => {
           <div
             className="premium-ai-core-container"
             style={{
-              transform: `translate(-50%, calc(-50% - ${scrollY * 0.15}px)) scale(${Math.max(0.85, 1 - scrollY * 0.0003)})`
+              transform: `translate(calc(-50% + min(11vw, 92px)), calc(-50% - ${scrollY * 0.15}px)) scale(${Math.max(0.85, 1 - scrollY * 0.0003)})`
             }}
           >
             <div className="core-secondary-aura"></div>
+            <div className="core-ghost-blob"></div>
+            <div className="core-ambient-halo"></div>
             <div className="core-main-form">
+              <div className="core-chroma-shell"></div>
+              <div className="core-specular spec-top"></div>
+              <div className="core-specular spec-left"></div>
+              <div className="core-specular spec-right"></div>
+              <div className="core-inner-shadow"></div>
               <div className="core-inner-glow"></div>
               <div className="core-plasma"></div>
-
               <div className="core-fog"></div>
             </div>
 
@@ -765,6 +837,9 @@ const App = () => {
               <div className="core-spark cs-4"></div>
               <div className="core-spark cs-5"></div>
               <div className="core-spark cs-6"></div>
+              <div className="core-spark cs-7"></div>
+              <div className="core-spark cs-8"></div>
+              <div className="core-spark cs-9"></div>
             </div>
           </div>
 
@@ -785,7 +860,9 @@ const App = () => {
 
         <div className="hero-content-fx">
           <div className="hero-brand-container">
-            <h1 className="hero-brand-title">MERKY.</h1>
+            <h1 className="hero-brand-title">
+              MERKY<span className="hero-brand-dot">.</span>
+            </h1>
             <p className="hero-brand-sub">Our animated AI friend that can operate your computer</p>
           </div>
         </div>
@@ -794,6 +871,13 @@ const App = () => {
 
       {/* Feature Section — Bento Grid */}
       <section id="features" className="reveal container features-section-modern" style={{ padding: '160px 2rem' }}>
+        <div className="features-atmosphere" aria-hidden="true">
+          <div className="features-beam"></div>
+          <div className="features-orbit features-orbit-1"></div>
+          <div className="features-orbit features-orbit-2"></div>
+          <div className="features-orb features-orb-1"></div>
+          <div className="features-orb features-orb-2"></div>
+        </div>
         <div className="data-dots-bg"></div>
         <div className="feature-halo" style={{ top: '15%', left: '5%' }}></div>
         <div className="feature-halo" style={{ bottom: '10%', right: '0%', opacity: 0.06 }}></div>
