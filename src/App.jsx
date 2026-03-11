@@ -570,10 +570,15 @@ const ComparisonHologram = () => {
 };
 
 const App = () => {
+  const MENU_ANIMATION_MS = 720;
   const [activeFaq, setActiveFaq] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuRendered, setMenuRendered] = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef(null);
+  const navRef = useRef(null);
+  const menuCloseTimerRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -612,18 +617,84 @@ const App = () => {
     };
   }, []);
 
+  const clearMenuCloseTimer = useCallback(() => {
+    if (menuCloseTimerRef.current) {
+      window.clearTimeout(menuCloseTimerRef.current);
+      menuCloseTimerRef.current = null;
+    }
+  }, []);
+
+  const openMenu = useCallback(() => {
+    clearMenuCloseTimer();
+    setMenuRendered(true);
+    setMenuClosing(false);
+    setMenuOpen(true);
+  }, [clearMenuCloseTimer]);
+
+  const closeMenu = useCallback(() => {
+    clearMenuCloseTimer();
+    setMenuOpen(false);
+    setMenuClosing(true);
+    menuCloseTimerRef.current = window.setTimeout(() => {
+      setMenuRendered(false);
+      setMenuClosing(false);
+      menuCloseTimerRef.current = null;
+    }, MENU_ANIMATION_MS);
+  }, [MENU_ANIMATION_MS, clearMenuCloseTimer]);
+
+  const toggleMenu = useCallback(() => {
+    if (menuOpen) {
+      closeMenu();
+      return;
+    }
+
+    openMenu();
+  }, [closeMenu, menuOpen, openMenu]);
+
+  useEffect(() => () => clearMenuCloseTimer(), [clearMenuCloseTimer]);
+
+  useEffect(() => {
+    if (!menuRendered) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event) => {
+      if (navRef.current?.contains(event.target)) {
+        return;
+      }
+
+      closeMenu();
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [closeMenu, menuRendered]);
+
   const toggleFaq = (index) => setActiveFaq(activeFaq === index ? null : index);
 
   return (
     <div className="app-wrapper">
       {/* Navigation */}
-      <nav className={`navbar ${menuOpen ? 'menu-is-open' : ''}`}>
+      <nav ref={navRef} className={`navbar ${menuRendered ? 'menu-is-open' : ''}`}>
         <div className="container">
           <div className="nav-left-part">
             <button
               className={`burger-btn ${menuOpen ? 'active' : ''}`}
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={toggleMenu}
               aria-label="Toggle Menu"
+              aria-expanded={menuOpen}
+              aria-controls="site-menu"
             >
               <div className="burger-line"></div>
               <div className="burger-line"></div>
@@ -638,16 +709,24 @@ const App = () => {
             </div>
           </div>
 
-          <div className={`nav-dropdown ${menuOpen ? 'active' : ''}`}>
-            <div className="dropdown-content">
-              <a href="#home" className="dropdown-link" onClick={() => setMenuOpen(false)}>Home</a>
-              <a href="#how-it-works" className="dropdown-link" onClick={() => setMenuOpen(false)}>How it works</a>
-              <a href="#features" className="dropdown-link" onClick={() => setMenuOpen(false)}>Features</a>
-              <a href="#pricing" className="dropdown-link" onClick={() => setMenuOpen(false)}>Pricing</a>
-              <a href="#faq" className="dropdown-link" onClick={() => setMenuOpen(false)}>FAQ</a>
-              <a href="#login" className="dropdown-link" onClick={() => setMenuOpen(false)}>Login / Register</a>
+          {menuRendered && (
+            <div
+              id="site-menu"
+              className={`nav-dropdown ${menuOpen ? 'active' : ''} ${menuClosing ? 'closing' : ''}`}
+              aria-hidden={!menuOpen}
+            >
+              <div className="nav-dropdown-surface">
+                <div className="dropdown-content">
+                  <a href="#home" className="dropdown-link" onClick={closeMenu}>Home</a>
+                  <a href="#how-it-works" className="dropdown-link" onClick={closeMenu}>How it works</a>
+                  <a href="#features" className="dropdown-link" onClick={closeMenu}>Features</a>
+                  <a href="#pricing" className="dropdown-link" onClick={closeMenu}>Pricing</a>
+                  <a href="#faq" className="dropdown-link" onClick={closeMenu}>FAQ</a>
+                  <a href="#login" className="dropdown-link" onClick={closeMenu}>Login / Register</a>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </nav>
 
